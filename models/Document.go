@@ -22,7 +22,7 @@ type Document struct {
 }
 
 // Create new Document
-func (d * Document) Create(tx *pop.Connection) (*validate.Errors, error) {
+func (d *Document) Create(tx *pop.Connection) (*validate.Errors, error) {
 	return tx.ValidateAndCreate(d)
 }
 
