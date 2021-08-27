@@ -1,0 +1,10 @@
+create_table("documents") {
+	t.Column("id", "uuid", {primary: true})
+	t.Column("doc_name", "string", {})
+	t.Column("student_id", "string", {})
+	t.Column("is_done", "bool", {"default": false})
+	t.Column("status", "string", {"default": "P"})
+	t.Column("doc_path", "string", {})
+	t.Column("message", "string", {})
+	t.Timestamps()
+}
