@@ -1,0 +1,8 @@
+create_table("admins") {
+	t.Column("id", "uuid", {primary: true})
+	t.Column("email", "string", {})
+	t.Column("password_hash", "string", {})
+	t.Column("password", "string", {})
+	t.Column("password_confirmation", "string", {})
+	t.Timestamps()
+}
