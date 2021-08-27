@@ -28,10 +28,14 @@ require (
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
+	github.com/gobuffalo/attrs v1.0.0 // indirect
+	github.com/gobuffalo/buffalo-auth v1.3.1 // indirect
+	github.com/gobuffalo/buffalo-goth v1.3.0 // indirect
 	github.com/gobuffalo/events v1.4.1 // indirect
 	github.com/gobuffalo/fizz v1.10.0 // indirect
 	github.com/gobuffalo/flect v0.2.3 // indirect
 	github.com/gobuffalo/genny v0.6.0 // indirect
+	github.com/gobuffalo/genny/v2 v2.0.6 // indirect
 	github.com/gobuffalo/github_flavored_markdown v1.1.0 // indirect
 	github.com/gobuffalo/helpers v0.6.2 // indirect
 	github.com/gobuffalo/httptest v1.5.0 // indirect
@@ -88,11 +92,14 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
+	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
 	golang.org/x/text v0.3.5 // indirect
+	golang.org/x/tools v0.1.2 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
