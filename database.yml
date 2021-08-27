@@ -1,9 +1,9 @@
 ---
 development:
   dialect: postgres
-  database: ensetservice_development
-  user: postgres
-  password: postgres
+  database: ENSETService
+  user: ensetse_user
+  password: janah
   host: 127.0.0.1
   pool: 5
 
