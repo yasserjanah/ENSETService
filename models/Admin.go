@@ -2,27 +2,37 @@ package models
 
 import (
 	"encoding/json"
+	"strings"
+	"time"
+
+	"github.com/gobuffalo/nulls"
 	"github.com/gobuffalo/pop/v5"
 	"github.com/gobuffalo/validate/v3"
-	"github.com/gofrs/uuid"
-	"time"
 	"github.com/gobuffalo/validate/v3/validators"
+	"github.com/gofrs/uuid"
+	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 )
+
 // Admin is used by pop to map your admins database table to your go code.
 type Admin struct {
-    ID uuid.UUID `json:"id" db:"id"`
-    Email string `json:"email" db:"email"`
-    PasswordHash string `json:"password_hash" db:"password_hash"`
-    Password string `json:"password" db:"password"`
-    PasswordConfirmation string `json:"password_confirmation" db:"password_confirmation"`
-    CreatedAt time.Time `json:"created_at" db:"created_at"`
-    UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	ID                   uuid.UUID    `json:"id" db:"id"`
+	Email                string       `json:"email" db:"email"`
+	PasswordHash         string       `json:"-" db:"password_hash"`
+	Password             nulls.String `json:"-" db:"-"`
+	PasswordConfirmation nulls.String `json:"-" db:"-"`
+	CreatedAt            time.Time    `json:"created_at" db:"created_at"`
+	UpdatedAt            time.Time    `json:"updated_at" db:"updated_at"`
 }
 
 // Create new Admin (TODO: find a way to remove registration)
 func (a *Admin) Create(tx *pop.Connection) (*validate.Errors, error) {
 	a.Email = strings.ToLower(a.Email)
-	ph, err := bcrypt.GenerateFromPassword([]byte(a.Password), bcrypt.DefaultCost)
+	pb, err := a.Password.MarshalJSON()
+	if err != nil {
+		return validate.NewErrors(), errors.WithStack(err)
+	}
+	ph, err := bcrypt.GenerateFromPassword([]byte(pb), bcrypt.DefaultCost)
 	if err != nil {
 		return validate.NewErrors(), errors.WithStack(err)
 	}
@@ -51,19 +61,19 @@ func (a *Admin) Validate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.Validate(
 		&validators.StringIsPresent{Field: a.Email, Name: "Email"},
 		&validators.StringIsPresent{Field: a.PasswordHash, Name: "PasswordHash"},
-		&validators.StringIsPresent{Field: a.Password, Name: "Password"},
-		&validators.StringIsPresent{Field: a.PasswordConfirmation, Name: "PasswordConfirmation"},
+		&validators.StringIsPresent{Field: a.Password.String, Name: "Password"},
+		&validators.StringIsPresent{Field: a.PasswordConfirmation.String, Name: "PasswordConfirmation"},
 		&validators.FuncValidator{
-			Field:   u.Email,
+			Field:   a.Email,
 			Name:    "Email",
 			Message: "%s is already taken",
 			Fn: func() bool {
 				var b bool
-				q := tx.Where("email = ?", u.Email)
-				if u.ID != uuid.Nil {
-					q = q.Where("id != ?", u.ID)
+				q := tx.Where("email = ?", a.Email)
+				if a.ID != uuid.Nil {
+					q = q.Where("id != ?", a.ID)
 				}
-				b, err = q.Exists(u)
+				b, err := q.Exists(a)
 				if err != nil {
 					return false
 				}
@@ -77,8 +87,8 @@ func (a *Admin) Validate(tx *pop.Connection) (*validate.Errors, error) {
 // This method is not required and may be deleted.
 func (a *Admin) ValidateCreate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.Validate(
-		&validators.StringIsPresent{Field: u.Password, Name: "Password"},
-		&validators.StringsMatch{Name: "Password", Field: u.Password, Field2: u.PasswordConfirmation, Message: "Password does not match confirmation"},
+		&validators.StringIsPresent{Field: a.Password.String, Name: "Password"},
+		&validators.StringsMatch{Name: "Password", Field: a.Password.String, Field2: a.PasswordConfirmation.String, Message: "Password does not match confirmation"},
 	), nil
 }
 

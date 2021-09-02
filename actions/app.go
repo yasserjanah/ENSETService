@@ -1,10 +1,14 @@
 package actions
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/envy"
 	forcessl "github.com/gobuffalo/mw-forcessl"
 	paramlogger "github.com/gobuffalo/mw-paramlogger"
+	"github.com/markbates/goth/gothic"
 	"github.com/unrolled/secure"
 
 	"ensetservice/models"
@@ -37,8 +41,9 @@ var T *i18n.Translator
 func App() *buffalo.App {
 	if app == nil {
 		app = buffalo.New(buffalo.Options{
-			Env:         ENV,
-			SessionName: "_ensetservice_session",
+			Env:           ENV,
+			SessionName:   "_NOT_PHPSESSID", // I Hate PHP
+			CompressFiles: true,
 		})
 
 		// Automatically redirect to SSL
@@ -60,8 +65,64 @@ func App() *buffalo.App {
 		app.Use(translations())
 
 		app.GET("/", HomeHandler)
+		app.Use(SetCurrentUser)
+		app.Use(Authorize)
+		app.Middleware.Skip(Authorize, HomeHandler)
+
+		//Routes for Admins Auth
+		AdminsAuth := app.Group("/auth/admins")
+		AdminsAuth.GET("/login", AdminNew)
+		AdminsAuth.POST("/login", AdminLogin)
+		AdminsAuth.GET("/logout", AdminLogout)
+		AdminsAuth.Use(Unauthorized)
+		AdminsAuth.Middleware.Skip(Unauthorized, AdminLogout)
+		AdminsAuth.Middleware.Skip(Authorize, AdminNew, AdminLogin)
+
+		// //Routes for Admin registration
+		// AdminsAuth.GET("/register", AdminRegisterNew)
+		// AdminsAuth.POST("/register", AdminRegisterCreate)
+		// AdminsAuth.Middleware.Remove(Authorize)
+
+		//Routes for Students Auth
+		StudentsAuth := app.Group("/auth/students")
+		bah := buffalo.WrapHandlerFunc(gothic.BeginAuthHandler)
+		StudentsAuth.GET("/login/{provider}", bah)
+		StudentsAuth.GET("/login/{provider}/callback", StudentLogin)
+		StudentsAuth.GET("/logout", StudentLogout)
+		StudentsAuth.Use(Unauthorized)
+		StudentsAuth.Middleware.Skip(Unauthorized, StudentLogout)
+		StudentsAuth.Middleware.Skip(Authorize, bah, StudentLogin)
+
+		//Routes for Documents Mgmt
+		docRoute := app.Group("/documents")
+
+		docRouteNew := docRoute.Group("/new")
+		docRouteNew.GET("", DocumentNew)
+		docRouteNew.POST("", DocumentCreate)
+		docRouteNew.Use(StudentsOnly)
+
+		docRouteProcessor := docRoute.Group("/process")
+		docRouteProcessor.GET("/{docID}", DocumentProcessorNew)
+		docRouteProcessor.POST("/{docID}", DocumentProcessorCreate)
+		docRouteProcessor.Use(AdminsOnly) // make sure that users have admin account can access
+
+		docRouteDownloader := docRoute.Group("/download")
+		docRouteDownloader.GET("/{docID}", DocumentDownloader)
+		// docRouteDownloader.Use(AdminsOnly) // make sure that users have admin account can access
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
+
+		// Handle Error pages
+
+		// Handle 404 Error
+		app.ErrorHandlers[404] = func(status int, err error, c buffalo.Context) error {
+			return c.Render(http.StatusNotFound, r.String(fmt.Sprintf("404 Page Not Found : %v", err.Error())))
+		}
+
+		// Handle 500 Error
+		app.ErrorHandlers[500] = func(status int, err error, c buffalo.Context) error {
+			return c.Render(http.StatusNotFound, r.String(fmt.Sprintf("500 Internal Server Error : %v", err.Error())))
+		}
 	}
 
 	return app
@@ -86,7 +147,14 @@ func translations() buffalo.MiddlewareFunc {
 // for more information: https://github.com/unrolled/secure/
 func forceSSL() buffalo.MiddlewareFunc {
 	return forcessl.Middleware(secure.Options{
-		SSLRedirect:     ENV == "production",
-		SSLProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
+		// SSLRedirect:           ENV == "production",
+		SSLProxyHeaders:    map[string]string{"X-Forwarded-Proto": "https"},
+		BrowserXssFilter:   true,
+		ContentTypeNosniff: true,
+		FrameDeny:          true,
+		// STSSeconds:           31536000,
+		// STSIncludeSubdomains: true,
+		// STSPreload:           true,
+		// ContentSecurityPolicy: "script-src $NONCE",
 	})
 }

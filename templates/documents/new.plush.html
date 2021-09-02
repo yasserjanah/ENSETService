@@ -1,0 +1,66 @@
+<div align="center">
+    <div class="log uk-width-2-5 uk-card uk-card-default uk-card-body uk-width-2-5@m">
+        <div id="content-login">
+            <h3 class="uk-card-title">Add Document</h3>
+            <%= if (errors) { %>
+                <strong class="uk-remove-margin uk-err"><%= errors.Error() %></strong>
+            <% } %>
+            <form action="<%= newDocumentsPath() %>" method="POST">
+                <input name="authenticity_token" type="hidden" value="<%= authenticity_token %>">
+                <div align="left" class="uk-margin">
+                    <label for="DocName">Document Name</label>
+                    <style>
+                    </style>
+                    <select name="DocName" class="uk-select uk-form-success" style="color:rgb(62 81 158) !important">
+                        <option value="" selected disabled hidden>Select Document</option>
+                        <option value="Document 1">Document 1</option>
+                        <option value="Document 2">Document 2</option>
+                        <option value="Document 3">Document 3</option>
+                        <option value="Document 4">Document 4</option>
+                        <option value="Document 5">Document 5</option>
+                        <option value="Document 6">Document 6</option>
+                    </select>
+                </div>
+                <hr>
+                <div align="left" class="uk-margin">
+                    <label for="FirstName">First Name :</label>
+                    <div class="">
+                        <input id="FirstName" name="FirstName" class="uk-input uk-form-success"
+                            style="color:rgb(62 81 158) !important" type="text" placeholder="First Name"
+                            <%= if (student) { %>
+                                value="<%= student.FirstName %>"
+                            <% } %>
+                            >
+                    </div>
+                </div>
+                <div align="left" class="uk-margin">
+                    <label for="LastName">Last Name :</label>
+                    <div class="">
+                        <input id="LastName" name="LastName" class="uk-input uk-form-success"
+                            style="color:rgb(62 81 158) !important" type="text" placeholder="Last Name"
+                            <%= if (student) { %>
+                                value="<%= student.LastName %>"
+                            <% } %>
+                            >
+                    </div>
+                </div>
+                <div align="left" class="uk-margin">
+                    <label for="PhoneNumber">Phone Number: </label>
+                    <div class="">
+                        <input id="PhoneNumber" name="PhoneNumber" class="uk-input uk-form-success"
+                            style="color:rgb(62 81 158) !important" type="text" placeholder="Phone Number"
+                            <%= if (student) { %>
+                                value="<%= student.PhoneNumber %>"
+                            <% } %>
+                            >
+                    </div>
+                </div>
+
+                <div align="right">
+                    <button class="uk-margin-top uk-button uk-button-success" type="submit">Add Document <span
+                            uk-icon="plus-circle"></span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

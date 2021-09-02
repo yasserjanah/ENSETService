@@ -1,0 +1,86 @@
+<div class="uk-margin">
+  <%= if (!hide_form) { %>
+  <%= if (doc) { %>
+  <% let student = GetStudent(doc.StudentID) %>
+  <h3 style="margin-top: 15px;" align="center">
+    Process "<span class="theme-text uk-padding-small uk-margin-remove"
+      style="color: #a29000!important;"><%= doc.DocName %></span>"
+  </h3>
+  <form action="<%= documentsProcessDocIDPath({"docID":doc.ID}) %>" method="POST" enctype="multipart/form-data">
+    <input name="authenticity_token" type="hidden" value="<%= authenticity_token %>">
+    <div class="resolveCon uk-margin-large">
+      <div class="imgg uk-border-circle uk-box-shadow-large">
+        <img src="<%= student.AvatarURL %>" width="150px" height="150px" class="avata uk-border-circle"
+          alt="Student:<%= student.FirstName + " " + student.LastName %>">
+      </div>
+      <div class="resolve uk-text-center">
+        <h3>
+          <%= if (student.FirstName == "" && student.LastName == ""){ %>
+          <strong><%= UserFromEmail(student.Email) %></strong>
+          <% } else { %>
+          <strong><%= student.FirstName + " " + student.LastName %></strong>
+          <% } %>
+        </h3>
+        <div>
+          <small>
+            <strong><%= student.Email %></strong>
+          </small>
+        </div>
+        <div>
+          <small>
+            <strong><%= student.PhoneNumber %></strong>
+          </small>
+        </div>
+        <div class="uk-margin-top">
+          <small class="uk-color">Created at : <strong><%= ParseTime(doc.CreatedAt) %></strong></small>
+          <%= if (doc.IsDone) { %>
+            <div><small class="uk-color">
+            <%= if (doc.Status == "DONE") { %>
+              Processed at : 
+            <% } else { %>
+              Rejected at :
+            <% } %>
+            <strong><%= ParseTime(doc.UpdatedAt) %></strong></small></div>
+          <% } %>
+        </div>
+        <div class="uk-margin-top" align="center">
+          <div uk-form-custom="target: true" class="uk-button">
+            <label for="file-input" style="color:green !important"><i class="fas fa-file-upload"></i> Select
+              Document</label>
+            <input id="file-input" type="file" name="pdoc" />
+            <input class="uk-input uk-form-width-medium" type="text" style="color:black" disabled
+              placeholder="No document selected">
+
+          </div>
+          <%= if (doc.IsDone) { %>
+          <div>
+            <%= if (doc.Status == "DONE") { %>
+              <small class="uk-color">Uploaded document : <strong><%= SplitDocPath(doc.DocPath) %></strong></small>
+            <% } %>
+          </div>
+          <% } %>
+        </div>
+
+        <div class="uk-margin-top" align="center">
+          <label for="t-area" align="left">
+            Message to <%= student.FirstName + " " + student.LastName %> :
+          </label>
+          <textarea class="uk-textarea" rows="3" cols="30" name="Message" id="t-area" style="border-radius: 15px;background-color: rgba(240, 240, 240, 0.331)!important;transition: ease all 500ms;"><%= if (doc.Message == "") { %>Bonjour Mr. <%= student.FirstName + " " + student.LastName %>, Votre demande est bien traité, vous pouvez télécharger votre document dès maintenant.<% } else { %><%= doc.Message %><% } %>
+          </textarea>
+        </div>
+
+        <div class="uk-grid-small uk-margin-remove uk-padding" uk-grid>
+          <div class="uk-width-1-2">
+            <input class="uk-button uk-button-danger uk-box-shadow-hover-large" type="submit" value="Reject" name="status">
+          </div>
+          <div class="uk-width-1-2">
+            <input class="uk-button uk-button-success uk-box-shadow-hover-large" type="submit" name="status"
+              value="<%= if (doc.IsDone) { %> Update <% } else { %> Upload <% } %>">
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <% } %>
+  <% } %>
+</div>

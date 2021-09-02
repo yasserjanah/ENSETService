@@ -1,64 +1,233 @@
-<header>
-  <div class="container">
-    <div class="row">
-      <div class="col-md-1 col-sm-2 col-xs-2 logo">
-        <a href="<%= rootPath() %>"><img src="<%= rootPath() %>assets/images/logo.svg" alt=""></a>
+<%
+  let is_admin = false
+  if (enset_admin) {
+    is_admin = true
+  }
+%>
+<%= if (is_admin) { %>
+
+<%= if (docs) { %>
+  <div class="uk-flex uk-margin uk-width-5-6 uk-flex-right">
+  <div class="uk-margin">
+    <form class="uk-flex uk-grid-small">
+      <div>
+        <input class="uk-input uk-search-input uk-text-dark" type="text" placeholder="Search">
       </div>
-      <div class="col-md-9 col-sm-9 col-xs-10 titles">
-        <h1><%= t("welcome_greeting") %></h1>
-        <h2>
-          <a href="https://github.com/gobuffalo/buffalo"><i class="fab fa-github" aria-hidden="true"></i> https://github.com/gobuffalo/buffalo</a>
-        </h2>
-        <h2 class="documentation">
-          <a href="http://gobuffalo.io/"><i class="fa fa-book" aria-hidden="true"></i> Documentation</a>
-        </h2>
+      <div>
+        <button type="submit" class="uk-button uk-button-light"><i class="fas fa-search"></i></button>
+      </div>
+    </form>
+  </div>
+</div>
+<%= for (index, d) in docs { %>
+<% let student = GetStudent(d.StudentID) %>
+
+<div class="uk-margin" align="center">
+  <div class="uk-card-grey uk-box-shadow-hover-medium uk-box-shadow uk-padding-small uk-width-5-6"
+    style="width:55% !important">
+    <div class="uk-grid-small" uk-grid>
+
+      <div class="uk-width-1-5@m uk-width-1-3@s">
+        <div class="uk-text-left@m uk-border-circle">
+          <img src="<%= student.AvatarURL %>" width="100px" height="100px" class="avatarr uk-border-circle" alt="">
+        </div>
+      </div>
+
+      <div class="uk-width-2-5@m uk-width-2-3@s">
+        <div class="uk-text-left@s uk-text-center">
+          <h4 class="uk-color"><%= d.DocName %></h4>
+          <small class="pending-statut">
+            Created by :
+            <%= if (student.FirstName == "" && student.LastName == ""){ %>
+            <strong><%= UserFromEmail(student.Email) %></strong>
+            <% } else { %>
+            <strong><%= student.FirstName + " " + student.LastName %></strong>
+            <% } %>
+          </small>
+        </div>
+      </div>
+
+      <div class="uk-width-2-5@m uk-text-right uk-flex uk-flex-column">
+        <div class="uk-text-right@s uk-text-center">
+          <a class="uk-button uk-button-success white"
+
+              href="<%= documentsProcessDocIDPath({"docID":d.ID})  %>"
+            <%= if (d.IsDone) { %>
+              <%= if (d.Status == "REJECTED") { %>
+                style="background-color:red"
+              <% } else { %>
+                style="background-color:green"
+              <% } %>
+            <% } %>
+
+            <%= if (d.Status == "REJECTED") { %>
+                disabled
+            <% } %>
+          >
+            <%= if (d.IsDone) { %>
+              <%= if (d.Status == "REJECTED") { %>
+                Rejected
+              <% } else { %>
+                Process Again
+              <% } %>
+            <% } else { %>
+              Process
+            <% } %>
+          </a>
+        </div>
+        <div class="uk-padding-small uk-color uk-flex uk-flex-right">
+        </div>
+        <div class="uk-width-3-3" align="right" style="color:black !important">
+          <small>Created at : <strong><%= ParseTime(d.CreatedAt) %></strong></small>
+          <%= if (d.IsDone) { %>
+            <div><small>
+            <%= if (d.Status == "REJECTED") { %>
+              Rejected
+            <% } else { %>
+              Processed
+            <% } %>
+              at : 
+              <strong><%= ParseTime(d.UpdatedAt) %></strong></small></div>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<% } %>
+<% } %>
+
+<% } else if (!is_admin) { %>
+
+<%= if (docs) { %>
+
+<div class="uk-container uk-margin" align="center">
+  <div class="uk-width-5-6 uk-margin" uk-grid>
+    <div class="uk-width-1-2 uk-text-left">
+      <div>
+        <h3>Documents List :</h3>
+      </div>
+    </div>
+    <div class="uk-width-1-2 uk-text-right">
+      <a href="<%= newDocumentsPath() %>" class="uk-button uk-button-success white">Add Document&nbsp;<span
+          uk-icon="plus-circle"></span></a>
+    </div>
+  </div>
+</div>
+
+<%= for (index, d) in docs { %>
+<%= if (d.Status == "PENDING") { %>
+<div align="center" class="uk-margin">
+  <div class="uk-card-pending uk-width-2-5" style="width:55% !important">
+    <div class="uk-grid-small uk-padding-small" uk-grid>
+      <div align="left" class="uk-width-1-3@m uk-div">
+        <h4 class="div" style="color: #7d7d64 !important;"><%= d.DocName %></h4>
+        <small class="pending-statut"><strong>STATUT : PENDING</strong></small>
+      </div>
+
+      <div align="right" class="uk-width-2-3@m" style="color: #7d7d64 !important;">
+        <p><i class="disabled fas fa-spinner fa-2x"></i></p>
+        <small>Created at : <strong><%= ParseTime(d.CreatedAt) %></strong></small>
       </div>
     </div>
   </div>
-
-</header>
-
-<div class="row">
-  <div class="col-md-12">
-    <div class="subtitle">
-      <div class="container">
-        <h3>Defined Routes</h3>
+</div>
+<% } else if (d.Status == "DONE") { %>
+<div class="uk-margin" align="center">
+  <div class="uk-card-success uk-width-2-5" style="width:55% !important">
+    <div class="uk-grid-small uk-padding-small" uk-grid>
+      <div class="uk-width-1-3@m uk-width-1-2@s uk-div">
+        <div>
+          <div align="left">
+            <h4 class="white div"><%= d.DocName %></h4>
+            <small class="pending-statut"><strong>STATUT : DONE</strong></small>
+          </div>
+        </div>
+      </div>
+      <div class="uk-width-1-3@m">
+        <div>
+          <div align="left" class="white">
+            <small><strong><%= d.Message %></strong></small>
+          </div>
+        </div>
+      </div>
+      <div class="uk-width-1-3@m">
+        <div>
+          <div align="right" style="color: #699070!important">
+            <p><a href="<%= documentsDownloadDocIDPath({"docID": d.ID}) %>"
+                download="<%= documentsDownloadDocIDPath({"docID": d.ID}) %>"><i
+                  class="fas fa-download fa-2x white"></i></a></p>
+            <small>Created at : <strong><%= ParseTime(d.CreatedAt) %></strong></small>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr text-align="left">
-            <th class="centered">METHOD</th>
-            <th>PATH</th>
-            <th>NAME</th>
-            <th>HANDLER</th>
-          </tr>
-        </thead>
-        <tbody>
+  </div>
+  <% } else if (d.Status == "REJECTED") { %>
+  <div align="center" class="uk-margin">
+    <div class="uk-card-danger uk-width-2-5" style="width:55% !important">
+      <div class="uk-grid-small uk-padding-small" uk-grid>
+        <div class="uk-width-1-3@m uk-width-1-2@s uk-div">
+          <div>
+            <div align="left">
+              <h4 class="white div"><%= d.DocName %></h4>
+              <small class="pending-statut"><strong>STATUT : REJECTED</strong></small>
+            </div>
+          </div>
+        </div>
+        <div class="uk-width-1-3@m">
+          <div>
+            <div align="left" class="white">
+              <small><%= d.Message %></small>
+            </div>
+          </div>
+        </div>
+        <div class="uk-width-1-3@m">
+          <div>
+            <div align="right" class="white">
+              <p><i class="fas fa-exclamation-triangle fa-2x"></i></p>
+              <small>Created at : <strong><%= ParseTime(d.CreatedAt) %></strong></small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+  <% } %>
+  <% } else { %>
+  <table class="table table-striped">
+    <thead>
+      <tr text-align="left">
+        <th class="centered">METHOD</th>
+        <th>PATH</th>
+        <th>NAME</th>
+        <th>HANDLER</th>
+      </tr>
+    </thead>
+    <tbody>
 
-          <%= for (r) in routes { %>
-            <tr>
-              <td class="centered">
-                <%= r.Method %>
-              </td>
-              <td>
-                <%= if (r.Method != "GET" || r.Path ~= "{") {
+      <%= for (r) in routes { %>
+      <tr>
+        <td class="centered">
+          <%= r.Method %>
+        </td>
+        <td>
+          <%= if (r.Method != "GET" || r.Path ~= "{") {
                   return r.Path
                 } else {
                   return linkTo(r.Path, {body: r.Path})
                 } %>
-              </td>
-              <td>
-                <%= r.PathName %>
-              </td>
-              <td><code><%= r.HandlerName %></code></td>
-            </tr>
-          <% } %>
+        </td>
+        <td>
+          <%= r.PathName %>
+        </td>
+        <td><code><%= r.HandlerName %></code></td>
+      </tr>
+      <% } %>
 
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-<div class="foot"> <span> Powered by <a href="http://gobuffalo.io/">gobuffalo.io</a></span> </div>
+    </tbody>
+  </table>
+  <% } %>
+  <% } %>

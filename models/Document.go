@@ -2,23 +2,25 @@ package models
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/gobuffalo/pop/v5"
 	"github.com/gobuffalo/validate/v3"
-	"github.com/gofrs/uuid"
-	"time"
 	"github.com/gobuffalo/validate/v3/validators"
+	"github.com/gofrs/uuid"
 )
+
 // Document is used by pop to map your documents database table to your go code.
 type Document struct {
-    ID uuid.UUID `json:"id" db:"id"`
-    DocName string `json:"doc_name" db:"doc_name"`
-    StudentID string `json:"student_id" db:"student_id"`
-    IsDone bool `json:"is_done" db:"is_done"`
-    Status string `json:"status" db:"status"`
-    DocPath string `json:"doc_path" db:"doc_path"`
-    Message string `json:"message" db:"message"`
-    CreatedAt time.Time `json:"created_at" db:"created_at"`
-    UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	ID        uuid.UUID `json:"id" db:"id"`
+	DocName   string    `json:"doc_name" db:"doc_name"`
+	StudentID string    `json:"student_id" db:"student_id"`
+	IsDone    bool      `json:"is_done" db:"is_done"`
+	Status    string    `json:"status" db:"status"`
+	DocPath   string    `json:"doc_path" db:"doc_path"`
+	Message   string    `json:"message" db:"message"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // Create new Document

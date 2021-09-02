@@ -1,6 +1,10 @@
 package actions
 
 import (
+	"ensetservice/models"
+	"strings"
+	"time"
+
 	"github.com/gobuffalo/buffalo/render"
 	"github.com/gobuffalo/packr/v2"
 )
@@ -19,6 +23,24 @@ func init() {
 
 		// Add template helpers here:
 		Helpers: render.Helpers{
+			"ParseTime": func(t time.Time) string {
+				return t.Format("Mon Jan _2 2006 15:04:05")
+			},
+			"GetStudent": func(sid string) *models.Student {
+				s := &models.Student{}
+				tx := models.DB
+				err := tx.Where("id = ?", sid).First(s)
+				if err != nil {
+					return nil
+				}
+				return s
+			},
+			"UserFromEmail": func(email string) string {
+				return strings.Split(email, "@")[0]
+			},
+			"SplitDocPath": func(docPath string) string {
+				return strings.Split(docPath, "__")[2]
+			},
 			// for non-bootstrap form helpers uncomment the lines
 			// below and import "github.com/gobuffalo/helpers/forms"
 			// forms.FormKey:     forms.Form,
