@@ -21,19 +21,29 @@ RUN buffalo build --static -o /bin/app
 FROM alpine
 RUN apk add --no-cache bash
 RUN apk add --no-cache ca-certificates
+# RUN apk add --no-cache postgresql-client
 
 WORKDIR /bin/
 
 COPY --from=builder /bin/app .
 
 # Uncomment to run the binary in "production" mode:
-# ENV GO_ENV=production
+ENV GO_ENV=production
+
+# Google API
+ENV GOOGLE_KEY=yourgoogleAPI.apps.googleusercontent.com
+ENV GOOGLE_SECRET=yourgoogleAPI
+
+ENV SESSION_SECRET=Dont_Forget_To_Generate_SESSION_SECRET_FOR_OUR_APPLICATION_v1
+ENV DATABASE_URL=postgres://postgres:janah@pg_db:5432/ENSETService?sslmode=disable
 
 # Bind the app to 0.0.0.0 so it can be seen from outside the container
 ENV ADDR=0.0.0.0
 
 EXPOSE 3000
 
+# COPY ./wait-for-postgres.sh . 
 # Uncomment to run the migrations before running the binary:
-# CMD /bin/app migrate; /bin/app
-CMD exec /bin/app
+# CMD /bin/wait-for-postgres.sh; /bin/app migrate; /bin/app
+CMD /bin/app migrate; /bin/app
+# CMD exec /bin/app
