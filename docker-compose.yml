@@ -1,0 +1,40 @@
+version: '3'
+services:   
+  pg_db:
+    image: postgres:10-alpine
+    container_name: pg_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: ENSETService
+      POSTGRES_PASSWORD: janah # for test !!!
+    ports:
+      - 5432:5432
+    restart: always
+    # Un-comment the following two lines if you want data to persist across containers
+    volumes:
+        - pg-data:/var/lib/postgresql/data
+      
+  enset-service-app:
+    depends_on:
+      - pg_db
+    image: enset_service
+    container_name: enset-service-app
+    restart: always
+    environment: 
+      - SESSION_SECRET=${SESSION_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - 3000:3000
+
+  web:
+    depends_on:
+      - enset-service-app
+    image: nginx_enset_service
+    container_name: nginx
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+      
+volumes:
+  pg-data:
