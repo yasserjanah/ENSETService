@@ -7,11 +7,12 @@
 <%= if (is_admin) { %>
 
 <%= if (docs) { %>
-  <div class="uk-flex uk-margin uk-width-5-6 uk-flex-right">
+<div class="uk-flex uk-margin uk-width-5-6 uk-flex-right">
   <div class="uk-margin">
-    <form class="uk-flex uk-grid-small">
+    <form class="uk-flex uk-grid-small" action="/">
       <div>
-        <input class="uk-input uk-search-input uk-text-dark" type="text" placeholder="Search">
+        <input class="uk-input uk-search-input uk-text-dark" type="text" name="search" placeholder="Search"
+          <%= if (searchKeyword) { %> value="<%= searchKeyword %>" <% } %>>
       </div>
       <div>
         <button type="submit" class="uk-button uk-button-light"><i class="fas fa-search"></i></button>
@@ -19,10 +20,17 @@
     </form>
   </div>
 </div>
+
+<%= if (len(docs) == 0) { %>
+  <div class="uk-container uk-margin" align="center">
+      No documents
+  </div>
+<% } %>
+
 <%= for (index, d) in docs { %>
 <% let student = GetStudent(d.StudentID) %>
 
-<div class="uk-margin" align="center">
+<div class="uk-margin" align="center" uk-scrollspy="cls: uk-animation-fade; repeat: true">
   <div class="uk-card-grey uk-box-shadow-hover-medium uk-box-shadow uk-padding-small uk-width-5-6"
     style="width:55% !important">
     <div class="uk-grid-small" uk-grid>
@@ -38,40 +46,30 @@
           <h4 class="uk-color"><%= d.DocName %></h4>
           <small class="pending-statut">
             Created by :
-            <%= if (student.FirstName == "" && student.LastName == ""){ %>
-            <strong><%= UserFromEmail(student.Email) %></strong>
-            <% } else { %>
-            <strong><%= student.FirstName + " " + student.LastName %></strong>
-            <% } %>
+            <a href="?search=<%= student.Email %>" style="color:white;">
+              <%= if (student.FirstName == "" && student.LastName == ""){ %>
+              <strong><%= UserFromEmail(student.Email) %></strong>
+              <% } else { %>
+              <strong><%= student.FirstName + " " + student.LastName %></strong>
+              <% } %>
+            </a>
           </small>
         </div>
       </div>
 
       <div class="uk-width-2-5@m uk-text-right uk-flex uk-flex-column">
         <div class="uk-text-right@s uk-text-center">
-          <a class="uk-button uk-button-success white"
-
-              href="<%= documentsProcessDocIDPath({"docID":d.ID})  %>"
+          <a class="uk-button uk-button-success white" href="<%= documentsProcessDocIDPath({"docID":d.ID})  %>"
+            <%= if (d.IsDone) { %> <%= if (d.Status == "REJECTED") { %> style="background-color:red" <% } else { %>
+            style="background-color:green" <% } %> <% } %> <%= if (d.Status == "REJECTED") { %> disabled <% } %>>
             <%= if (d.IsDone) { %>
-              <%= if (d.Status == "REJECTED") { %>
-                style="background-color:red"
-              <% } else { %>
-                style="background-color:green"
-              <% } %>
-            <% } %>
-
             <%= if (d.Status == "REJECTED") { %>
-                disabled
-            <% } %>
-          >
-            <%= if (d.IsDone) { %>
-              <%= if (d.Status == "REJECTED") { %>
-                Rejected
-              <% } else { %>
-                Process Again
-              <% } %>
+            Rejected
             <% } else { %>
-              Process
+            Process Again
+            <% } %>
+            <% } else { %>
+            Process
             <% } %>
           </a>
         </div>
@@ -80,13 +78,13 @@
         <div class="uk-width-3-3" align="right" style="color:black !important">
           <small>Created at : <strong><%= ParseTime(d.CreatedAt) %></strong></small>
           <%= if (d.IsDone) { %>
-            <div><small>
-            <%= if (d.Status == "REJECTED") { %>
+          <div><small>
+              <%= if (d.Status == "REJECTED") { %>
               Rejected
-            <% } else { %>
+              <% } else { %>
               Processed
-            <% } %>
-              at : 
+              <% } %>
+              at :
               <strong><%= ParseTime(d.UpdatedAt) %></strong></small></div>
           <% } %>
         </div>
@@ -116,9 +114,15 @@
   </div>
 </div>
 
+<%= if (len(docs) == 0) { %>
+  <div class="uk-container uk-margin" align="center">
+      No documents
+  </div>
+<% } %>
+
 <%= for (index, d) in docs { %>
 <%= if (d.Status == "PENDING") { %>
-<div align="center" class="uk-margin">
+<div align="center" class="uk-margin" uk-scrollspy="cls: uk-animation-fade; repeat: true">
   <div class="uk-card-pending uk-width-2-5" style="width:55% !important">
     <div class="uk-grid-small uk-padding-small" uk-grid>
       <div align="left" class="uk-width-1-3@m uk-div">
@@ -134,7 +138,7 @@
   </div>
 </div>
 <% } else if (d.Status == "DONE") { %>
-<div class="uk-margin" align="center">
+<div class="uk-margin" align="center" uk-scrollspy="cls: uk-animation-fade; repeat: true">
   <div class="uk-card-success uk-width-2-5" style="width:55% !important">
     <div class="uk-grid-small uk-padding-small" uk-grid>
       <div class="uk-width-1-3@m uk-width-1-2@s uk-div">
@@ -165,7 +169,7 @@
     </div>
   </div>
   <% } else if (d.Status == "REJECTED") { %>
-  <div align="center" class="uk-margin">
+  <div align="center" class="uk-margin" uk-scrollspy="cls: uk-animation-fade; repeat: true">
     <div class="uk-card-danger uk-width-2-5" style="width:55% !important">
       <div class="uk-grid-small uk-padding-small" uk-grid>
         <div class="uk-width-1-3@m uk-width-1-2@s uk-div">
@@ -197,37 +201,50 @@
   <% } %>
   <% } %>
   <% } else { %>
-  <table class="table table-striped">
-    <thead>
-      <tr text-align="left">
-        <th class="centered">METHOD</th>
-        <th>PATH</th>
-        <th>NAME</th>
-        <th>HANDLER</th>
-      </tr>
-    </thead>
-    <tbody>
-
-      <%= for (r) in routes { %>
-      <tr>
-        <td class="centered">
-          <%= r.Method %>
-        </td>
-        <td>
-          <%= if (r.Method != "GET" || r.Path ~= "{") {
-                  return r.Path
-                } else {
-                  return linkTo(r.Path, {body: r.Path})
-                } %>
-        </td>
-        <td>
-          <%= r.PathName %>
-        </td>
-        <td><code><%= r.HandlerName %></code></td>
-      </tr>
-      <% } %>
-
-    </tbody>
-  </table>
-  <% } %>
-  <% } %>
+  <div uk-parallax="y:-100" uk-scrollspy="target: > div; cls: uk-animation-fade; delay: 500">
+    <div class="uk-margin" align="center">
+      <div class="uk-width-2-3">
+        <img src="<%= assetPath("images/logo-service.png") %>" width="300px">
+      </div>
+      <div class="uk-width-2-3">
+        <p><strong>ENSET Service</strong> est une plateforme créée pour aider les étudiants</p>
+        <p>et leur donner la possibilité de demander</p>
+        <p>des certificats scolaires en ligne.</p>
+        <hr width="50%">
+        <p>Tu es un(e) étudiant(e) dans L'ENSET Mohammedia, tu peux utilisé cette plateform.</p>
+      </div>
+    </div>
+    <div align="center">
+      <p>
+        <strong>1 -</strong> Connecter d'apres votre email de L'ENSET.<br>
+        <strong>2 -</strong> Remplir le formulaire et choisir le document conserné.<br>
+        <strong>3 -</strong> Suivre l'etat de votre demande.<br>
+        <strong>4 -</strong> Si Votre demande est bien traité tu peux facilement téléchargé votre certificat
+        scolaire.<br>
+      </p>
+    </div>
+    <div class="uk-margin-large-top">
+    </div>
+    <div class="uk-margin-large-top">
+    </div>
+    <div align="center">
+      <a href="<%= authStudentsLoginProviderPath({"provider":"google"}) %>"
+        class="uk-scrollspy-inview uk-animation-slide-bottom"
+        data-uk-scrollspy="cls:uk-animation-slide-bottom; delay: 1000;duration: 1000" style="border-color: initial;
+              background-color: rgb(6, 139, 187);
+              background-image: linear-gradient( 
+              90deg, rgb(109 77 154), rgb(8, 177, 119));;
+              color: white;
+              padding: 12px 12px;
+              border-radius:4px;
+              text-decoration:none;">
+        <i class="fas fa-user-graduate"></i>
+        Student Login
+      </a>
+    </div>
+    <div class="uk-margin-large-top">
+    </div>
+  </div>
+</div>
+<% } %>
+<% } %>
