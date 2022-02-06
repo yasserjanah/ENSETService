@@ -17,7 +17,7 @@ import (
 
 func init() {
 	gothic.Store = App().SessionStore
-	goth.UseProviders(google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), fmt.Sprintf("%s%s", App().Host, "/auth/students/login/google/callback")))
+	goth.UseProviders(google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), fmt.Sprintf("%s%s", "https://enset-service.local.dev", "/auth/students/login/google/callback")))
 }
 
 // StudentLogin default implementation.
@@ -32,7 +32,7 @@ func StudentLogin(c buffalo.Context) error {
 
 	//check if it is an enset-media.ac.ma email
 	if domain := strings.Split(gu.Email, "@"); domain[1] != "enset-media.ac.ma" {
-		c.Set("error_message", fmt.Sprintf("%v is not an ENSETM email", gu.Email))
+		c.Set("error_message", fmt.Sprintf("%v is not an ENSET Mohammedia Email", gu.Email))
 		return c.Render(http.StatusUnauthorized, r.HTML("errors/errors.html"))
 	}
 
