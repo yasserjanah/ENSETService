@@ -13,12 +13,11 @@
                     </style>
                     <select name="DocName" class="uk-select uk-form-success" style="color:rgb(62 81 158) !important">
                         <option value="" selected disabled hidden>Select Document</option>
-                        <option value="Document 1">Document 1</option>
-                        <option value="Document 2">Document 2</option>
-                        <option value="Document 3">Document 3</option>
-                        <option value="Document 4">Document 4</option>
-                        <option value="Document 5">Document 5</option>
-                        <option value="Document 6">Document 6</option>
+                        <%= if (av_docs) { %>
+                            <%= for (index, vdoc) in av_docs { %>
+                                <option value="<%= vdoc %>"><%= vdoc %></option>
+                            <% } %>
+                        <% } %>
                     </select>
                 </div>
                 <hr>
