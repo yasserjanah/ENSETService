@@ -31,12 +31,12 @@
                 <li><a href="<%= authStudentsLogoutPath() %>"><strong>Logout</strong></a></li>
                 <li class="uk-active">
                     <a>
-                    <%= if (enset_student.FirstName == "" && enset_student.LastName == ""){ %>
+                        <%= if (enset_student.FirstName == "" && enset_student.LastName == ""){ %>
                         <strong><%= UserFromEmail(enset_student.Email) %></strong>
-                    <% } else { %>
+                        <% } else { %>
                         <strong><%= enset_student.FirstName + " " + enset_student.LastName %></strong>
-                    <% } %>
-                    &nbsp;
+                        <% } %>
+                        &nbsp;
                         <div class="wrapp">
                             <div id="avatar"><img width="40px" height="40px" src="<%= enset_student.AvatarURL %>" />
                             </div>
@@ -88,64 +88,78 @@
             <% } else { %>
             <!-- Guest mode -->
             <ul class="uk-navbar-nav">
-                <li><a href="<%= authStudentsLoginProviderPath({"provider":"google"}) %>"><strong>Student LOGIN</strong></a></li>
+                <li><a href="<%= authStudentsLoginProviderPath({"provider":"google"}) %>"><strong>Student
+                            LOGIN</strong></a></li>
                 <li><a href="<%= authAdminsLoginPath() %>"><strong>Admin LOGIN</strong></a></li>
             </ul>
             <% } %>
         </div>
-
     </nav>
-    <!-- Mobile
+
     <nav class="uk-navbar uk-navbar-container uk-hidden@m">
         <div class="uk-navbar-left">
-            <a class="uk-navbar-toggle"  uk-toggle="target: #navMob" uk-navbar-toggle-icon href="#"></a>
+            <a class="uk-navbar-toggle" uk-toggle="target: #navMob" uk-navbar-toggle-icon href="#"></a>
         </div>
         <div class="uk-navbar-center">
             <a href="#"><img width="100px" src="<%= assetPath("images/logo-service.png") %>" /></a>
         </div>
-        <!-- connected -->
-    <!-- <div class="uk-navbar-right">
-                <a class="uk-margin-right" href="#">LogOUT</a>
-                    <a href="#">
-                        <div class="wrapp uk-margin-right">
-                            <div id="avatar"><img width="40px" height="40px" src="./assets/users/user_1_avatar.JPG"/></div>
-                            <div id="connected"></div>
-                        </div>
-                    </a> 
-            </div> -->
+        <!-- <div class="uk-navbar-right">
+            <a href="#">
+                <div class="wrapp uk-margin-right">
+                    <div id="avatar"><img width="40px" height="40px" src="./assets/users/user_1_avatar.JPG" /></div>
+                    <div id="connected"></div>
+                </div>
+            </a>
+        </div> -->
 
-    <!-- </nav>
-    
+    </nav>
+
     <div id="navMob" uk-offcanvas="overlay: true">
-        <div class="uk-offcanvas-bar">
-    
+        <div class="uk-offcanvas-bar" style="    background: #252531;">
+
             <ul class="uk-nav uk-nav-default">
                 <li class="uk-active"><a href="#"><img src="<%= assetPath("images/logo-service.png") %>" /></a></li>
-                <li class="uk-active"><a href="#">Active</a></li>
-                <li class="uk-parent">
-                    <a href="#">About</a>
-                    <ul class="uk-nav-sub">
-                        <li><a href="#">Sub item</a></li>
-                        <li><a href="#">Sub item</a></li>
-                    </ul>
-                </li>
-
-
-                <li class="uk-nav-header">Header</li>
-                <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: table"></span> Item</a></li>
-                <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: thumbnails"></span> Item</a></li>
-                <li class="uk-nav-divider"></li>
-                <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: trash"></span> Item</a></li>
+                <li class="uk-active"><a href="/"><strong>Home</strong></a></li>
+                <%= if (enset_student) { %>
+                    <li class="uk-parent"><a>
+                        <div class="wrapp">
+                            <div id="avatar"><img width="40px" height="40px" src="<%= enset_student.AvatarURL %>" />
+                            </div>
+                            <div id="connected"></div>
+                        </div>
+                        <%= if (enset_student.FirstName == "" && enset_student.LastName == ""){ %>
+                        <strong><%= UserFromEmail(enset_student.Email) %></strong>
+                        <% } else { %>
+                        <strong><%= enset_student.FirstName + " " + enset_student.LastName %></strong>
+                        <% } %>
+                        &nbsp;
+                    </a></li>
+                    <li class="uk-parent"><a href="<%= authStudentsLogoutPath() %>"><strong>Logout</strong></a></li>
+                <% } else if (enset_admin) { %>
+                    <li class="uk-parent"><strong><%= enset_admin.Email %></strong> &nbsp;</li>
+                    <li class="uk-parent"><a href="<%= authAdminsLogoutPath() %>"><strong>Logout</strong></a></li>
+                <% } else { %>
+                    <li class="uk-parent">
+                        <a href="<%= authStudentsLoginProviderPath({"provider":"google"}) %>">
+                            <strong>Student Login</strong>
+                        </a>
+                    </li>
+                    <li class="uk-parent">
+                        <a href="<%= authAdminsLoginPath() %>">
+                            <strong>Admin Login</strong>
+                        </a>
+                    </li>
+                <% } %>
             </ul>
-    
+
         </div>
-    </div> -->
-    <!-- MobNav -->
+    </div>
+
     <%= partial("flash.html") %>
     <%= yield %>
 
     <footer class="uk-margin" align="center">
-        <p><small>made with <i class="fas fa-heart" style="color:red;"></i> | Copyright © <strong>ENSET
+        <p><small>Made with <i class="fas fa-heart" style="color:red;"></i> | Copyright © <strong>ENSET
                     MOHAMMEDIA</strong></small></p>
     </footer>
     <%= javascriptTag("all.min.js") %>
