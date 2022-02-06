@@ -1,11 +1,11 @@
----
+
 development:
   dialect: postgres
   database: ENSETService
-  user: ensetse_user
+  user: postgres
   password: janah
-  host: 127.0.0.1
+  host: 0.0.0.0
   pool: 5
 
 production:
-  url: {{envOr "DATABASE_URL" "postgres://ensetse_user:janah@127.0.0.1:5432/ENSETService?sslmode=disable"}}
+  url: {{envOr "DATABASE_URL" "postgres://postgres:janah@0.0.0.0:5432/ENSETService?sslmode=disable"}}
