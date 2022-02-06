@@ -3,7 +3,6 @@ package actions
 import (
 	"database/sql"
 	"ensetservice/models"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -37,7 +36,7 @@ func AdminLogin(c buffalo.Context) error {
 	bad := func() error {
 		verrs := validate.NewErrors()
 		verrs.Add("email", "Invalid Email / Password !!")
-		c.Flash().Add("danger", "Invalid Email / Password !!")
+		c.Flash().Add("danger", "Invalid Email or Password !!")
 
 		c.Set("errors", verrs)
 
@@ -54,20 +53,20 @@ func AdminLogin(c buffalo.Context) error {
 
 	// confirm that the given password matches the hashed password from the db
 	pb, err := a.Password.MarshalJSON()
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	err = bcrypt.CompareHashAndPassword([]byte(a.PasswordHash), []byte(pb))
 	if err != nil {
 		return bad()
 	}
-	fmt.Println(a)
 	c.Session().Set("enset_admin_id", a.ID)
-	c.Flash().Add("success", "Welcome Back to Buffalo!")
+	c.Flash().Add("success", "Welcome Back Admin!")
 
 	redirectURL := "/"
 	if redir, ok := c.Session().Get("redirectURL").(string); ok && redir != "" {
 		redirectURL = redir
 	}
-
-	fmt.Println(redirectURL)
 
 	return c.Redirect(http.StatusFound, redirectURL)
 }
@@ -87,34 +86,34 @@ func AdminLogout(c buffalo.Context) error {
 }
 
 // TODO: to be removed (don't allow admin registration)
-// // AdminRegisterNew renders the admin registration form
-// func AdminRegisterNew(c buffalo.Context) error {
-// 	a := models.Admin{}
-// 	c.Set("admin", a)
-// 	return c.Render(200, r.HTML("admin/new.plush.html"))
-// }
+// AdminRegisterNew renders the admin registration form
+func AdminRegisterNew(c buffalo.Context) error {
+	a := models.Admin{}
+	c.Set("admin", a)
+	return c.Render(200, r.HTML("admin/new.plush.html"))
+}
 
-// // AdminRegisterCreate registers a new admin with the application.
-// func AdminRegisterCreate(c buffalo.Context) error {
-// 	a := &models.Admin{}
-// 	if err := c.Bind(a); err != nil {
-// 		return errors.WithStack(err)
-// 	}
+// AdminRegisterCreate registers a new admin with the application.
+func AdminRegisterCreate(c buffalo.Context) error {
+	a := &models.Admin{}
+	if err := c.Bind(a); err != nil {
+		return errors.WithStack(err)
+	}
 
-// 	tx := c.Value("tx").(*pop.Connection)
-// 	verrs, err := a.Create(tx)
-// 	if err != nil {
-// 		return errors.WithStack(err)
-// 	}
+	tx := c.Value("tx").(*pop.Connection)
+	verrs, err := a.Create(tx)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
-// 	if verrs.HasAny() {
-// 		c.Set("admin", a)
-// 		c.Set("errors", verrs)
-// 		return c.Render(200, r.HTML("admin/new.plush.html"))
-// 	}
+	if verrs.HasAny() {
+		c.Set("admin", a)
+		c.Set("errors", verrs)
+		return c.Render(200, r.HTML("admin/new.plush.html"))
+	}
 
-// 	c.Session().Set("enset_admin_id", a.ID)
-// 	c.Flash().Add("success", "Welcome to ENSET Service!")
+	c.Session().Set("enset_admin_id", a.ID)
+	c.Flash().Add("success", "Welcome to ENSET Service!")
 
-// 	return c.Redirect(302, "/")
-// }
+	return c.Redirect(302, "/")
+}
