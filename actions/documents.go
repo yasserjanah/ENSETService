@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"ensetservice/mailers"
 	"ensetservice/models"
 	"fmt"
 	"io"
@@ -16,6 +17,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var AvailableDocuments = []string{"Relevé de notes", "certificat scolaire"}
+
 // DocumentNew default implementation.
 func DocumentNew(c buffalo.Context) error {
 	uid := c.Session().Get("enset_student_id")
@@ -23,6 +26,7 @@ func DocumentNew(c buffalo.Context) error {
 	tx := c.Value("tx").(*pop.Connection)
 	tx.Where("id = ?", uid.(uuid.UUID).String()).First(s)
 	c.Set("student", s)
+	c.Set("av_docs", AvailableDocuments)
 	return c.Render(http.StatusOK, r.HTML("documents/new.html"))
 }
 
@@ -33,6 +37,18 @@ func DocumentCreate(c buffalo.Context) error {
 	d := &models.Document{}
 	if err := c.Bind(d); err != nil {
 		return errors.WithStack(err)
+	}
+
+	found := false
+	for _, c := range AvailableDocuments {
+		if c == d.DocName {
+			found = true
+		}
+	}
+
+	if !found {
+		c.Set("errors", errors.New("Invalid document Name !! "))
+		return c.Render(http.StatusBadRequest, r.HTML("documents/new.html"))
 	}
 
 	// set the student_id (don't let the user set it, TO AVOID IDOR)
@@ -62,11 +78,39 @@ func DocumentCreate(c buffalo.Context) error {
 		return c.Render(http.StatusBadRequest, r.HTML("documents/new.html"))
 	}
 
-	fmt.Println()
-	fmt.Println("*** adding new document:", d)
-	fmt.Println()
+	// fmt.Println()
+	// fmt.Println("*** adding new document:", d)
+	// fmt.Println()
 
-	c.Flash().Add("success", "Document Created successfully!")
+	c.Flash().Add("success", "Votre demande a été créé avec succès.!")
+
+	// send email to the student
+	go func() {
+
+		err = mailers.SendNotification([]string{s.Email}, "Demande créée", `Votre demande a été créée avec succès.
+		nous vous tiendrons au courant de l’état de votre demande.`)
+
+		if err != nil {
+			fmt.Println("*** error sending email:", err)
+		}
+
+	}()
+
+	// send email to the admin
+	go func() {
+		admins := []*models.Admin{}
+		tx.All(admins)
+
+		for _, a := range admins {
+			err = mailers.SendNotification([]string{a.Email}, "Nouvelle Demande", fmt.Sprintf(`Une nouvelle demande a été créé.
+			par l'étudiant %v %v`, s.FirstName, s.LastName))
+
+			if err != nil {
+				fmt.Println("*** error sending email:", err)
+			}
+		}
+
+	}()
 
 	return c.Redirect(http.StatusFound, "/")
 }
@@ -77,6 +121,7 @@ func DocumentProcessorNew(c buffalo.Context) error {
 	docID := c.Param("docID")
 
 	tx := c.Value("tx").(*pop.Connection)
+
 	// find document with the ID
 	doc := &models.Document{}
 	q := tx.Where("id = ?", docID)
@@ -173,6 +218,7 @@ func DocumentProcessorCreate(c buffalo.Context) error {
 	}
 
 	if err := c.Bind(doc); err != nil {
+		fmt.Println("BIND: ", err)
 		return errors.WithStack(err)
 	}
 
@@ -180,24 +226,51 @@ func DocumentProcessorCreate(c buffalo.Context) error {
 
 	err = tx.Save(doc)
 
-	fmt.Println()
-	fmt.Println(doc)
-	fmt.Println()
+	// fmt.Println()
+	// fmt.Println(doc)
+	// fmt.Println()
 
 	if err != nil {
+		fmt.Println("SAVE: ", err)
 		return errors.WithStack(err)
 	}
 
 	c.Set("doc", doc)
+
+	uid := doc.StudentID
+	s := &models.Student{}
+	tx.Where("id = ?", uid).First(s)
 
 	if doc.Status != "REJECTED" {
 		// do the check if the document is already resolved
 		if doc.IsDone {
 			c.Flash().Add("warning", "Document Already processed !!")
 		}
+
+		// send email to the student
+		go func() {
+
+			err = mailers.SendNotification([]string{s.Email}, "Document est prêt", `Votre demande est bien traité, vous pouvez télécharger votre document dès maintenant.`)
+
+			if err != nil {
+				fmt.Println("*** error sending email:", err)
+			}
+
+		}()
 		c.Flash().Add("success", "Document Updated succesfully !!")
 		return c.Render(http.StatusOK, r.HTML("documents/process.html"))
 	}
+
+	// send email to the student
+	go func() {
+
+		err = mailers.SendNotification([]string{s.Email}, "Demande rejetée", `Votre demande est rejetée, pour plus de détails veuillez consulter votre compte.`)
+
+		if err != nil {
+			fmt.Println("*** error sending email:", err)
+		}
+
+	}()
 
 	c.Flash().Add("success", "Document Rejected succesfully !!")
 	return c.Redirect(http.StatusFound, "/")
