@@ -1,7 +1,7 @@
 package actions
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gobuffalo/buffalo"
@@ -21,7 +21,7 @@ import (
 
 // ENV is used to help switch settings based on where the
 // application is being run. Default is "development".
-var ENV = envy.Get("GO_ENV", "development")
+var ENV = envy.Get("GO_ENV", "production")
 var app *buffalo.App
 var T *i18n.Translator
 
@@ -78,10 +78,11 @@ func App() *buffalo.App {
 		AdminsAuth.Middleware.Skip(Unauthorized, AdminLogout)
 		AdminsAuth.Middleware.Skip(Authorize, AdminNew, AdminLogin)
 
-		// //Routes for Admin registration
-		// AdminsAuth.GET("/register", AdminRegisterNew)
-		// AdminsAuth.POST("/register", AdminRegisterCreate)
-		// AdminsAuth.Middleware.Remove(Authorize)
+		//Routes for Admin registration
+		// TODO: to be removed in production
+		AdminsAuth.GET("/register", AdminRegisterNew)
+		AdminsAuth.POST("/register", AdminRegisterCreate)
+		AdminsAuth.Middleware.Remove(Authorize)
 
 		//Routes for Students Auth
 		StudentsAuth := app.Group("/auth/students")
@@ -116,12 +117,13 @@ func App() *buffalo.App {
 
 		// Handle 404 Error
 		app.ErrorHandlers[404] = func(status int, err error, c buffalo.Context) error {
-			return c.Render(http.StatusNotFound, r.String(fmt.Sprintf("404 Page Not Found : %v", err.Error())))
+			return c.Render(http.StatusNotFound, r.String("404 Page Not Found"))
 		}
 
 		// Handle 500 Error
 		app.ErrorHandlers[500] = func(status int, err error, c buffalo.Context) error {
-			return c.Render(http.StatusNotFound, r.String(fmt.Sprintf("500 Internal Server Error : %v", err.Error())))
+			log.Fatalln(err.Error())
+			return c.Render(http.StatusNotFound, r.String("500 Internal Server Error"))
 		}
 	}
 
@@ -147,14 +149,15 @@ func translations() buffalo.MiddlewareFunc {
 // for more information: https://github.com/unrolled/secure/
 func forceSSL() buffalo.MiddlewareFunc {
 	return forcessl.Middleware(secure.Options{
-		// SSLRedirect:           ENV == "production",
-		SSLProxyHeaders:    map[string]string{"X-Forwarded-Proto": "https"},
-		BrowserXssFilter:   true,
-		ContentTypeNosniff: true,
-		FrameDeny:          true,
-		// STSSeconds:           31536000,
-		// STSIncludeSubdomains: true,
-		// STSPreload:           true,
-		// ContentSecurityPolicy: "script-src $NONCE",
+		SSLRedirect:           ENV == "production",
+		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
+		BrowserXssFilter:      true,
+		CustomBrowserXssValue: "1; mode=block",
+		ContentTypeNosniff:    true,
+		FrameDeny:             true,
+		STSSeconds:            31536000,
+		STSIncludeSubdomains:  true,
+		STSPreload:            true,
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' data: *.googleusercontent.com; script-src 'self' ; style-src 'self' 'unsafe-inline' *; font-src *",
 	})
 }
